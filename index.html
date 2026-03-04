@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buat Bocil 🌸</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 0; }
+
+  .card {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 32px;
+    padding: 50px 40px;
+    max-width: 460px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  }
+
+  .emoji-main {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 16px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 30px;
+  }
+
+  .message-box {
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px 24px;
+    margin-bottom: 24px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s;
+  }
+
+  .message-text {
+    font-size: 1.15rem;
+    color: #fff;
+    line-height: 1.8;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.5s ease;
+  }
+
+  .message-text.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .btn-next {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(240, 87, 108, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 16px;
+  }
+
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(240, 87, 108, 0.5); }
+  .btn-next:active { transform: translateY(0); }
+
+  .counter {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .done-screen { display: none; }
+  .done-screen .emoji-main { font-size: 80px; }
+  .done-screen .title { font-size: 1.8rem; color: #ffd6e7; }
+  .done-screen p { color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.7; margin-top: 12px; }
+
+  .btn-repeat {
+    margin-top: 24px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-repeat:hover { background: rgba(255,255,255,0.15); }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="card" id="mainScreen">
+  <span class="emoji-main" id="msgEmoji">🐰</span>
+  <div class="tag">khusus buat bocil 🐰</div>
+  <div class="title">Haii Bocil, jangan nangis dong! 🥺</div>
+  <div class="subtitle">Ada pesan spesial buat kamu... buka satu-satu ya 💌</div>
+  <div class="message-box">
+    <p class="message-text" id="msgText">Tekan tombol di bawah ya, Bocil 🥺</p>
+  </div>
+  <button class="btn-next" onclick="nextMsg()">Buka pesan 💌</button>
+  <div class="counter" id="counter"></div>
+</div>
+
+<div class="card done-screen" id="doneScreen">
+  <span class="emoji-main">🌟</span>
+  <div class="title">Bocil kuat banget! 💪</div>
+  <p>Udah baca semua pesannya kan?<br>Semoga sedikit membantu ya Bocil 🤍<br>Inget, kamu nggak pernah sendirian!</p>
+  <button class="btn-repeat" onclick="restart()">Baca lagi dari awal 🔁</button>
+</div>
+
+<script>
+const messages = [
+  { emoji: "😤", text: "Haii Bocil! Jangan nangis dong, nanti item! 😤 (becanda, tetep cantik kok)" },
+  { emoji: "🫂", text: "Oke serius deh boleh nangis kok Cil. Tapi inget, ada yang selalu ada buat kamu ya 🤍" },
+  { emoji: "💔", text: "Patah hati emang nyakitin banget Bocil. Tapi percaya deh, kamu terlalu keren buat terus ngeratapinnya." },
+  { emoji: "🌧️", text: "Hujan pasti berhenti, Bocil. Rasa sakit ini juga bakal berlalu pelan-pelan. Sabar ya..." },
+  { emoji: "✨", text: "Bocil dengerin kamu terlalu berharga buat seseorang yang nggak bisa menghargai kamu. Serius." },
+  { emoji: "😤", text: "Yang pergi? Biarin aja. Rezeki Bocil masih panjang, yang lebih baik pasti dateng! 💅" },
+  { emoji: "🌸", text: "Kamu nggak harus kuat terus kok Bocil. Tapi tahu nggak, kamu tetap kuat bahkan saat kamu ngerasa rapuh." },
+  { emoji: "🤍", text: "Ada teman yang beneran peduli sama kamu Bocil, yang mau dengerin kapanpun kamu butuh. Ingat itu ya!" },
+  { emoji: "💪", text: "Bocil udah melewatin banyak hal berat sebelumnya dan masih bisa senyum. Kali ini juga pasti bisa!" },
+  { emoji: "🌟", text: "Orang yang tepat bakal dateng Bocil, dan dia bakal ngehargain kamu sepenuhnya. Nggak perlu nangis lagi ya! 😘" },
+];
+
+let current = 0;
+
+function nextMsg() {
+  const msgText = document.getElementById('msgText');
+  const msgEmoji = document.getElementById('msgEmoji');
+  const btn = document.querySelector('.btn-next');
+  const counter = document.getElementById('counter');
+
+  if (current >= messages.length) {
+    document.getElementById('mainScreen').style.display = 'none';
+    document.getElementById('doneScreen').style.display = 'block';
+    return;
+  }
+
+  msgText.classList.remove('show');
+  setTimeout(() => {
+    msgEmoji.textContent = messages[current].emoji;
+    msgText.textContent = messages[current].text;
+    msgText.classList.add('show');
+    counter.textContent = `${current + 1} / ${messages.length}`;
+    current++;
+    btn.textContent = current >= messages.length ? 'Pesan terakhir 🌟' : 'Pesan berikutnya 💌';
+  }, 200);
+}
+
+function restart() {
+  current = 0;
+  document.getElementById('doneScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
+  const msgText = document.getElementById('msgText');
+  msgText.classList.remove('show');
+  msgText.textContent = 'Tekan tombol di bawah ya, Bocil 🥺';
+  document.getElementById('msgEmoji').textContent = '🌸';
+  document.getElementById('counter').textContent = '';
+  document.querySelector('.btn-next').textContent = 'Buka pesan 💌';
+  setTimeout(() => msgText.classList.add('show'), 200);
+}
+
+// Stars background
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const stars = Array.from({length: 120}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.5 + 0.3,
+  a: Math.random(),
+  speed: Math.random() * 0.005 + 0.002
+}));
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.a += s.speed;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.sin(s.a) * 0.4})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+setTimeout(() => { document.getElementById('msgText').classList.add('show'); }, 300);
+</script>
+</body>
+</html>
